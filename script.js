@@ -1,41 +1,34 @@
-document.addEventListener("DOMContentLoaded", () => {
-  const startButton = document.getElementById("start-button");
-  const output = document.getElementById("output");
+const startBtn = document.getElementById("startBtn");
+const speechText = document.getElementById("speechText");
+const aiResponse = document.getElementById("aiResponse");
 
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SpeechRecognition) {
-    output.textContent = "Speech Recognition is not supported in this browser.";
-    return;
-  }
+const synth = window.speechSynthesis;
 
-  const recognition = new SpeechRecognition();
+startBtn.addEventListener("click", () => {
+  const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
   recognition.lang = "en-US";
-  recognition.interimResults = false;
+  recognition.start();
 
-  startButton.addEventListener("click", () => {
-    output.textContent = "Listening...";
-    recognition.start();
-  });
+  recognition.onresult = async (event) => {
+    const transcript = event.results[0][0].transcript;
+    speechText.textContent = transcript;
+    aiResponse.textContent = "Thinking...";
 
-  recognition.onresult = (event) => {
-    const speechText = event.results[0][0].transcript;
-    output.textContent = `You said: ${speechText}`;
+    try {
+      const res = await fetch(`https://api.affiliateplus.xyz/api/chatbot?message=${encodeURIComponent(transcript)}&botname=Mulberry&ownername=Flakious`);
+      const data = await res.json();
+      aiResponse.textContent = data.message;
 
-    // Simulated AI response
-    setTimeout(() => {
-      output.textContent += `\nAI says: ${simulateAIResponse(speechText)}`;
-    }, 1000);
+      const utter = new SpeechSynthesisUtterance(data.message);
+      utter.pitch = 1;
+      utter.rate = 1;
+      synth.speak(utter);
+    } catch (err) {
+      aiResponse.textContent = "Failed to get AI response.";
+    }
   };
 
-  recognition.onerror = (event) => {
-    output.textContent = `Error: ${event.error}`;
+  recognition.onerror = () => {
+    speechText.textContent = "Could not hear you.";
   };
-
-  function simulateAIResponse(text) {
-    const lower = text.toLowerCase();
-    if (lower.includes("hello")) return "Hi there! How can I assist?";
-    if (lower.includes("how are you")) return "I'm just code, but I'm feeling functional!";
-    if (lower.includes("name")) return "I'm Mulberry-AI, your assistant.";
-    return "Sorry, I didn’t quite catch that.";
-  }
 });
