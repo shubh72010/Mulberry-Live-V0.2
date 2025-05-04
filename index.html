@@ -1,47 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Speech-to-Text Test</title>
-  <style>
-    body { font-family: sans-serif; padding: 20px; }
-    #result { margin-top: 20px; font-size: 1.2em; color: darkblue; }
-    button { padding: 10px 20px; font-size: 1em; }
-  </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Mulberry-AI</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://js.puter.com/v2/"></script>
 </head>
 <body>
-  <h1>Speech Recognition Test</h1>
-  <button id="startBtn">Start Listening</button>
-  <div id="result">Say something...</div>
+  <div class="chat-container" id="chat"></div>
+  <form id="chat-form">
+    <input type="text" id="user-input" placeholder="Type your message..." autocomplete="off" />
+    <button type="submit">Send</button>
+  </form>
 
-  <script>
-    const startBtn = document.getElementById("startBtn");
-    const resultDiv = document.getElementById("result");
-
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-      resultDiv.textContent = "Speech recognition not supported in this browser.";
-      startBtn.disabled = true;
-    } else {
-      const recognition = new SpeechRecognition();
-      recognition.lang = "en-US";
-      recognition.interimResults = false;
-      recognition.maxAlternatives = 1;
-
-      recognition.onresult = (event) => {
-        const transcript = event.results[0][0].transcript;
-        resultDiv.textContent = "You said: " + transcript;
-      };
-
-      recognition.onerror = (event) => {
-        resultDiv.textContent = "Error: " + event.error;
-      };
-
-      startBtn.onclick = () => {
-        resultDiv.textContent = "Listening...";
-        recognition.start();
-      };
-    }
-  </script>
+  <script src="script.js"></script>
 </body>
 </html>
