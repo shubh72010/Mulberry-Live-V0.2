@@ -1,17 +1,47 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Speech-to-Text Test</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <title>Speech-to-Text Test</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    #result { margin-top: 20px; font-size: 1.2em; color: darkblue; }
+    button { padding: 10px 20px; font-size: 1em; }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Speech-to-Text Test</h1>
-        <button id="startButton">Start Listening</button>
-        <p id="output">Your speech will appear here...</p>
-    </div>
-    <script src="script.js"></script>
+  <h1>Speech Recognition Test</h1>
+  <button id="startBtn">Start Listening</button>
+  <div id="result">Say something...</div>
+
+  <script>
+    const startBtn = document.getElementById("startBtn");
+    const resultDiv = document.getElementById("result");
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      resultDiv.textContent = "Speech recognition not supported in this browser.";
+      startBtn.disabled = true;
+    } else {
+      const recognition = new SpeechRecognition();
+      recognition.lang = "en-US";
+      recognition.interimResults = false;
+      recognition.maxAlternatives = 1;
+
+      recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        resultDiv.textContent = "You said: " + transcript;
+      };
+
+      recognition.onerror = (event) => {
+        resultDiv.textContent = "Error: " + event.error;
+      };
+
+      startBtn.onclick = () => {
+        resultDiv.textContent = "Listening...";
+        recognition.start();
+      };
+    }
+  </script>
 </body>
 </html>
