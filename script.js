@@ -1,39 +1,41 @@
-const startButton = document.getElementById("start-button");
-const output = document.getElementById("output");
+document.addEventListener("DOMContentLoaded", () => {
+  const startButton = document.getElementById("start-button");
+  const output = document.getElementById("output");
 
-const speechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-const recognition = new speechRecognition();
-recognition.lang = "en-US";
-recognition.interimResults = false;
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) {
+    output.textContent = "Speech Recognition is not supported in this browser.";
+    return;
+  }
 
-startButton.addEventListener("click", function () {
-    recognition.start();
+  const recognition = new SpeechRecognition();
+  recognition.lang = "en-US";
+  recognition.interimResults = false;
+
+  startButton.addEventListener("click", () => {
     output.textContent = "Listening...";
-});
+    recognition.start();
+  });
 
-recognition.onresult = function (event) {
-    const speechToText = event.results[0][0].transcript;
-    output.textContent = `You said: ${speechToText}`;
+  recognition.onresult = (event) => {
+    const speechText = event.results[0][0].transcript;
+    output.textContent = `You said: ${speechText}`;
 
-    // Simulate AI response after a short delay
+    // Simulated AI response
     setTimeout(() => {
-        const aiResponse = simulateAIResponse(speechToText); // Simulated AI response function
-        output.textContent += `\nAI says: ${aiResponse}`;
-    }, 1000); // AI response delay (1 second)
-};
+      output.textContent += `\nAI says: ${simulateAIResponse(speechText)}`;
+    }, 1000);
+  };
 
-// Simulated AI response function
-function simulateAIResponse(userInput) {
-    // This can be expanded to match specific input or integrate with a real AI model
-    if (userInput.toLowerCase().includes("hello")) {
-        return "Hello! How can I help you today?";
-    } else if (userInput.toLowerCase().includes("how are you")) {
-        return "I'm doing great, thank you!";
-    } else {
-        return "I'm not sure how to respond to that.";
-    }
-}
+  recognition.onerror = (event) => {
+    output.textContent = `Error: ${event.error}`;
+  };
 
-recognition.onerror = function (event) {
-    output.textContent = `Error occurred: ${event.error}`;
-};
+  function simulateAIResponse(text) {
+    const lower = text.toLowerCase();
+    if (lower.includes("hello")) return "Hi there! How can I assist?";
+    if (lower.includes("how are you")) return "I'm just code, but I'm feeling functional!";
+    if (lower.includes("name")) return "I'm Mulberry-AI, your assistant.";
+    return "Sorry, I didn’t quite catch that.";
+  }
+});
