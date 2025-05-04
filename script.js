@@ -1,4 +1,4 @@
-// Check for browser support 
+// Check for browser support  
 if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
     const startButton = document.getElementById("startButton");
     const output = document.getElementById("output");
