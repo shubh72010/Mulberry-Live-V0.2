@@ -2,24 +2,17 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Mulberry-AI</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div class="app">
-    <header>
-      <h1>Mulberry-AI</h1>
-    </header>
-    <main>
-      <div class="tile mic-tile">
-        <button id="listenBtn">Start Listening</button>
-        <p id="output">Say something...</p>
-      </div>
-    </main>
-    <footer>
-      <p>-// Powered by Web Speech API</p>
-    </footer>
+  <div class="tile">
+    <h1>Mulberry-AI</h1>
+    <button id="startBtn">Start Listening</button>
+    <p><strong>You said:</strong> <span id="speechText">...</span></p>
+    <p><strong>AI says:</strong> <span id="aiResponse">Waiting...</span></p>
+    <footer>-// Powered by Web Speech & Public AI</footer>
   </div>
 
   <script src="script.js"></script>
