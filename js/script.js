@@ -1,92 +1,163 @@
-const apis = [
-  // API 1: Affiliate+ (no key needed)
-  userInput => `https://api.affiliateplus.xyz/api/chatbot?message=${encodeURIComponent(userInput)}&botname=Mulberry&ownername=Flakious`,
-  
-  // API 2: Some GPT-based fun bot (if you find better ones, you can add here)
-  userInput => `https://some-random-api.ml/chatbot?message=${encodeURIComponent(userInput)}`,
+// Get HTML elements
+let userInputField = document.getElementById("user-input");
+let messagesContainer = document.getElementById("messages");
+let typingIndicator = document.getElementById("typing-indicator");
 
-  // Add more no-key APIs here as needed
+// Free API endpoints (No API keys required)
+const apis = [
+  {
+    url: "https://api.pipedream.com/v1/chat",  // Pipedream - Free Chat API
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: (input) => JSON.stringify({ message: input })
+  },
+  {
+    url: "https://api.affiliateplus.xyz/api/chat", // Example API (if available)
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: (input) => JSON.stringify({ message: input })
+  },
+  {
+    url: "https://some-other-public-api-url", // Placeholder for another free API
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: (input) => JSON.stringify({ message: input })
+  }
 ];
 
-const messagesContainer = document.getElementById("messages");
-const input = document.getElementById("input");
-const sendButton = document.getElementById("send");
-const micButton = document.getElementById("start-listening");
+// Send message when the user presses the send button
+function sendMessage() {
+  let userMessage = userInputField.value;
+  if (userMessage.trim() !== "") {
+    appendMessage("You", userMessage, "user");
+    userInputField.value = "";
 
-let recognition;
+    showTypingIndicator();
 
-function appendMessage(text, sender) {
-  const message = document.createElement("div");
-  message.classList.add("message", sender);
-  message.innerText = text;
+    // Simulate AI response after delay (2 seconds)
+    setTimeout(() => {
+      let aiResponse = getAIResponse(userMessage);
+      appendMessage("AI", aiResponse, "ai");
+      hideTypingIndicator();
+    }, 2000);
+  }
+}
 
-  // Bounce animation
-  message.style.animation = "bounce 0.4s ease";
-  messagesContainer.appendChild(message);
+// Append message to chat window
+function appendMessage(sender, message, senderClass) {
+  let messageElement = document.createElement("div");
+  messageElement.classList.add("message", senderClass);
+  messageElement.textContent = `${sender}: ${message}`;
+  messagesContainer.appendChild(messageElement);
+
+  // Scroll to the bottom of the chat
   messagesContainer.scrollTop = messagesContainer.scrollHeight;
 }
 
-async function getAIResponse(userInput) {
-  for (const api of apis) {
+// Show typing indicator when the AI is "thinking"
+function showTypingIndicator() {
+  typingIndicator.style.display = "block";
+}
+
+// Hide typing indicator when AI responds
+function hideTypingIndicator() {
+  typingIndicator.style.display = "none";
+}
+
+// Function to simulate AI response (using fallback API system)
+async function getAIResponse(input) {
+  let responseText = "";
+  for (let api of apis) {
     try {
-      const url = api(userInput);
-      const res = await fetch(url);
-      const data = await res.json();
-      const reply = data.message || data.response || data.reply;
-      if (reply) return reply;
-    } catch (err) {
-      console.warn("API failed, trying next...", err);
+      const response = await fetch(api.url, {
+        method: api.method,
+        headers: api.headers,
+        body: api.body(input)
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        responseText = data.response || "AI says: Hello! (API fallback)";
+        break;
+      }
+    } catch (error) {
+      console.error("Error with API: ", api.url, error);
     }
   }
-  return "Sorry, I couldn't get a response. But I'm here!";
+
+  if (!responseText) {
+    responseText = "Sorry, I couldn't get a response. But I'm here!";
+  }
+
+  return responseText;
 }
 
-async function handleUserMessage() {
-  const userInput = input.value.trim();
-  if (!userInput) return;
-
-  appendMessage(`You: ${userInput}`, "user");
-  input.value = "";
-
-  const aiReply = await getAIResponse(userInput);
-  appendMessage(`AI: ${aiReply}`, "ai");
-}
-
-sendButton.addEventListener("click", handleUserMessage);
-input.addEventListener("keypress", e => {
-  if (e.key === "Enter") handleUserMessage();
-});
-
-// Speech Recognition Setup
-if ("webkitSpeechRecognition" in window) {
-  recognition = new webkitSpeechRecognition();
-  recognition.continuous = false;
-  recognition.interimResults = false;
-  recognition.lang = "en-US";
-
-  recognition.onresult = function (event) {
-    const transcript = event.results[0][0].transcript;
-    input.value = transcript;
-    handleUserMessage();
-  };
-
-  recognition.onerror = function (event) {
-    console.error("Speech recognition error", event);
-  };
-
-  recognition.onend = function () {
-    micButton.innerText = "Start Listening";
-  };
-
-  micButton.addEventListener("click", () => {
-    if (micButton.innerText === "Start Listening") {
-      recognition.start();
-      micButton.innerText = "Stop Listening";
-    } else {
-      recognition.stop();
+// Initialize particles.js with configuration
+particlesJS('particles-js', {
+  particles: {
+    number: {
+      value: 50,
+      density: {
+        enable: true,
+        value_area: 800
+      }
+    },
+    color: {
+      value: "#6a0dad"
+    },
+    shape: {
+      type: "circle"
+    },
+    opacity: {
+      value: 0.5,
+      random: false,
+      anim: {
+        enable: true,
+        speed: 1,
+        opacity_min: 0.1
+      }
+    },
+    size: {
+      value: 3,
+      random: true,
+      anim: {
+        enable: true,
+        speed: 5,
+        size_min: 0.1
+      }
+    },
+    move: {
+      enable: true,
+      speed: 3,
+      direction: "none",
+      random: true,
+      straight: false,
+      out_mode: "out",
+      attract: {
+        enable: false,
+        rotateX: 600,
+        rotateY: 1200
+      }
     }
-  });
-} else {
-  micButton.disabled = true;
-  micButton.innerText = "Speech not supported";
-}
+  },
+  interactivity: {
+    detect_on: "canvas",
+    events: {
+      onhover: {
+        enable: true,
+        mode: "repulse"
+      },
+      onclick: {
+        enable: true,
+        mode: "push"
+      }
+    }
+  },
+  retina_detect: true
+});
