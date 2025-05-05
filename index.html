@@ -2,25 +2,25 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Mulberry-AI</title>
   <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/particles.js"></script> <!-- Particle.js -->
 </head>
 <body>
-  <div class="app">
-    <h1>Mulberry-AI</h1>
-    <div id="chat"></div>
+  <!-- Particle Animation Background -->
+  <div id="particles-js"></div>
+
+  <!-- Chat Container -->
+  <div class="chat-container">
+    <div class="messages" id="messages"></div>
+    <div class="typing-indicator" id="typing-indicator">AI is typing...</div> <!-- Typing Indicator -->
     
-    <div class="controls">
-      <button id="startBtn">Start Listening</button>
-      <button id="stopBtn">Stop Listening</button>
+    <!-- Input Box and Send Button -->
+    <div class="input-container">
+      <input type="text" id="user-input" placeholder="Type your message..." />
+      <button onclick="sendMessage()">Send</button>
     </div>
-
-    <form id="chat-form">
-      <input type="text" id="user-input" placeholder="Type your message here" autocomplete="off" />
-      <button type="submit">Send</button>
-    </form>
-
-    <footer>-// Powered by Web Speech API</footer>
   </div>
 
   <script src="script.js"></script>
