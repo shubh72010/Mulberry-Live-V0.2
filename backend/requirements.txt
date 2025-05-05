@@ -1,2 +1,15 @@
-Flask
+flask
+transformers
+torch
 requests
+flask-cors
+numpy
+tqdm
+pillow
+gunicorn
+sentencepiece
+scipy
+scikit-learn
+urllib3
+certifi
+huggingface_hub
