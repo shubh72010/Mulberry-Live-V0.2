@@ -1,29 +1,28 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Mulberry AI</title>
-  <link rel="stylesheet" href="css/style.css" />
+  <meta charset="UTF-8">
+  <title>Mulberry-AI</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="container">
+  <div class="app">
     <h1>Mulberry-AI</h1>
-    <div id="chat-box" class="tile"></div>
-
+    <div id="chat"></div>
+    
     <div class="controls">
-      <button id="start-listening">Start Listening</button>
-      <button id="stop-listening" disabled>Stop Listening</button>
+      <button id="startBtn">Start Listening</button>
+      <button id="stopBtn">Stop Listening</button>
     </div>
 
-    <div class="input-area">
-      <input type="text" id="user-input" placeholder="Type your message here" />
-      <button id="send-btn">Send</button>
-    </div>
+    <form id="chat-form">
+      <input type="text" id="user-input" placeholder="Type your message here" autocomplete="off" />
+      <button type="submit">Send</button>
+    </form>
 
     <footer>-// Powered by Web Speech API</footer>
   </div>
 
-  <script src="js/script.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
