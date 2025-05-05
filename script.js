@@ -1,57 +1,101 @@
-// Speech Recognition setup
-const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-recognition.lang = 'en-US';
+const output = document.getElementById("output");
+const button = document.getElementById("start-btn");
+const stopButton = document.getElementById("stop-btn");
+const userText = document.getElementById("user-text");
+const sendBtn = document.getElementById("send-btn");
+const responseBox = document.getElementById("response");
+let recognition;
 
-let isListening = false;
+const aiEndpoints = [
+  {
+    name: "duckduckgo-instant",
+    url: query => `https://api.duckduckgo.com/?q=${encodeURIComponent(query)}&format=json&no_redirect=1&t=mulberry`,
+    parse: data => data.Abstract || "Sorry, no detailed answer available."
+  },
+  {
+    name: "mistral-public",
+    url: query => `https://mistral-api.sindresorhus.dev/?q=${encodeURIComponent(query)}`,
+    parse: data => data.answer || "No response from Mistral."
+  }
+];
 
-function startListening() {
-    if (isListening) {
-        recognition.stop();
-        document.getElementById('start-button').textContent = 'Start Listening';
-        isListening = false;
-    } else {
-        recognition.start();
-        document.getElementById('start-button').textContent = 'Stop Listening';
-        isListening = true;
+async function getAIResponse(message) {
+  for (const api of aiEndpoints) {
+    try {
+      const res = await fetch(api.url(message));
+      const data = await res.json();
+      const answer = api.parse(data);
+      if (answer && answer !== "") {
+        return answer;
+      }
+    } catch (e) {
+      console.warn(`API "${api.name}" failed, trying next...`);
     }
+  }
+  return "Sorry, I couldn't get a response. But I'm here!";
 }
 
-recognition.onresult = (event) => {
-    const userInput = event.results[0][0].transcript;
-    document.getElementById('user-input').value = userInput;
-    sendMessage();
-};
-
-recognition.onerror = (event) => {
-    console.error('Speech Recognition Error: ', event);
-    alert('An error occurred with speech recognition.');
-};
-
-// Send message to AI
-function sendMessage() {
-    const userMessage = document.getElementById('user-input').value;
-    if (!userMessage) return;
-
-    appendMessage(userMessage, 'user');
-    document.getElementById('user-input').value = '';
-    document.getElementById('send-button').disabled = true;
-
-    getAIResponse(userMessage);
+function appendText(user, text) {
+  const div = document.createElement("div");
+  div.className = "tile";
+  div.innerHTML = `<strong>${user} says:</strong> ${text}`;
+  output.appendChild(div);
+  output.scrollTop = output.scrollHeight;
 }
 
-// Display user or AI messages
-function appendMessage(message, sender) {
-    const messagesContainer = document.getElementById('messages');
-    const messageDiv = document.createElement('div');
-    messageDiv.classList.add('message', sender);
-    messageDiv.innerText = message;
-    messagesContainer.appendChild(messageDiv);
-    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+async function handleInput(message) {
+  appendText("You", message);
+  responseBox.innerText = "Thinking...";
+  const response = await getAIResponse(message);
+  responseBox.innerText = "";
+  appendText("AI", response);
 }
 
-// Fallback AI response if APIs fail
-function getAIResponse(userMessage) {
-    const fallbackMessage = "Sorry, I couldn't get a response. But I'm here!";
-    appendMessage(fallbackMessage, 'ai');
-    document.getElementById('send-button').disabled = false;
+sendBtn.addEventListener("click", () => {
+  const msg = userText.value.trim();
+  if (msg) {
+    handleInput(msg);
+    userText.value = "";
+  }
+});
+
+userText.addEventListener("keypress", e => {
+  if (e.key === "Enter") {
+    sendBtn.click();
+  }
+});
+
+if ("webkitSpeechRecognition" in window) {
+  recognition = new webkitSpeechRecognition();
+  recognition.continuous = false;
+  recognition.interimResults = false;
+  recognition.lang = "en-US";
+
+  recognition.onstart = () => {
+    button.innerText = "Listening...";
+    button.disabled = true;
+    stopButton.disabled = false;
+  };
+
+  recognition.onresult = event => {
+    const transcript = event.results[0][0].transcript;
+    userText.value = transcript;
+    handleInput(transcript);
+  };
+
+  recognition.onerror = e => {
+    appendText("System", `Speech error: ${e.error}`);
+  };
+
+  recognition.onend = () => {
+    button.innerText = "Start Listening";
+    button.disabled = false;
+    stopButton.disabled = true;
+  };
+
+  button.addEventListener("click", () => recognition.start());
+  stopButton.addEventListener("click", () => recognition.stop());
+} else {
+  button.disabled = true;
+  alert("Web Speech API not supported in this browser.");
 }
