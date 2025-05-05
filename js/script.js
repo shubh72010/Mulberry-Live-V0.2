@@ -1,68 +1,85 @@
-// Define AI API endpoints
-const apis = [
-    "https://api.openai.com/v1/completions",  // API 1 (with key, will be skipped for now)
-    "https://api.affiliateplus.xyz/api/chat", // API 2 - an example, replace with another valid endpoint
-    "https://some-other-public-api-url",      // API 3 - placeholder for other free API services
+// DOM Elements
+const output = document.getElementById("output");
+const inputField = document.getElementById("inputField");
+const sendBtn = document.getElementById("sendBtn");
+const startBtn = document.getElementById("startBtn");
+const stopBtn = document.getElementById("stopBtn");
+
+// API Fallback System
+const apiFunctions = [
+  // API 1: Affiliate+
+  async (message) => {
+    const res = await fetch(`https://api.affiliateplus.xyz/api/chat?message=${encodeURIComponent(message)}&botname=Mulberry&ownername=Flakious`);
+    const data = await res.json();
+    return data.message;
+  },
+
+  // API 2: Free GPT4-o (Unofficial)
+  async (message) => {
+    const res = await fetch(`https://free-unoficial-gpt4o-mini-api-g70n.onrender.com/chat/?query=${encodeURIComponent(message)}`);
+    const data = await res.json();
+    return data.response;
+  },
+
+  // API 3: Puter.js (GPT-4o)
+  async (message) => {
+    if (!window.puter || !puter.ai) throw new Error("Puter not loaded");
+    const response = await puter.ai.chat(message);
+    return response;
+  }
 ];
 
-// Replace with your actual fallback API function
-async function getAIResponse(userInput) {
-    for (let apiUrl of apis) {
-        try {
-            const response = await fetch(apiUrl, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    // Include an API Key if the endpoint requires it
-                    "Authorization": "Bearer YOUR_API_KEY" 
-                },
-                body: JSON.stringify({
-                    prompt: userInput,
-                    max_tokens: 50
-                })
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                return data.choices[0].text.trim(); // Modify this based on API response format
-            } else {
-                console.log("API failed: " + apiUrl);
-            }
-        } catch (error) {
-            console.error("Error with API", apiUrl, error);
-        }
+// Get AI Response
+async function getAIResponse(message) {
+  for (let api of apiFunctions) {
+    try {
+      const response = await api(message);
+      if (response) return response;
+    } catch (err) {
+      console.warn("API failed, trying next:", err);
     }
-    return "Sorry, I couldn't get a response. But I'm here!";
+  }
+  return "Sorry, I couldn't get a response. But I'm here!";
 }
 
-// Speech-to-text function
-function startListening() {
-    const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-    recognition.lang = "en-US";
-    recognition.onresult = async (event) => {
-        const userInput = event.results[0][0].transcript;
-        document.getElementById("userInput").value = userInput;  // Optional to display in input box
-        console.log("You said: " + userInput);
-        const aiResponse = await getAIResponse(userInput);
-        document.getElementById("aiResponse").innerText = aiResponse; // Display AI response
-    };
-    recognition.start();
+// Handle Send Button
+sendBtn.addEventListener("click", async () => {
+  const userInput = inputField.value.trim();
+  if (!userInput) return;
+
+  output.innerHTML += `<div><b>You:</b> ${userInput}</div>`;
+  inputField.value = "";
+
+  const aiReply = await getAIResponse(userInput);
+  output.innerHTML += `<div><b>AI:</b> ${aiReply}</div>`;
+  output.scrollTop = output.scrollHeight;
+});
+
+// Voice Recognition
+let recognition;
+if ('webkitSpeechRecognition' in window) {
+  recognition = new webkitSpeechRecognition();
+  recognition.lang = "en-US";
+  recognition.continuous = false;
+  recognition.interimResults = false;
+
+  recognition.onresult = async (event) => {
+    const voiceText = event.results[0][0].transcript;
+    output.innerHTML += `<div><b>You:</b> ${voiceText}</div>`;
+
+    const aiReply = await getAIResponse(voiceText);
+    output.innerHTML += `<div><b>AI:</b> ${aiReply}</div>`;
+    output.scrollTop = output.scrollHeight;
+  };
+
+  recognition.onerror = (e) => {
+    output.innerHTML += `<div style="color:red;"><b>Error:</b> ${e.error}</div>`;
+  };
 }
 
-// Stop listening
-function stopListening() {
-    if (recognition) {
-        recognition.stop();
-    }
-}
-
-// Event listeners for speech buttons
-document.getElementById("startListening").addEventListener("click", startListening);
-document.getElementById("stopListening").addEventListener("click", stopListening);
-
-// Event listener for manual input (optional)
-document.getElementById("sendMessage").addEventListener("click", async () => {
-    const userInput = document.getElementById("userInput").value;
-    const aiResponse = await getAIResponse(userInput);
-    document.getElementById("aiResponse").innerText = aiResponse;
+startBtn.addEventListener("click", () => {
+  if (recognition) recognition.start();
+});
+stopBtn.addEventListener("click", () => {
+  if (recognition) recognition.stop();
 });
